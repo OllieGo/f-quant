@@ -4,12 +4,14 @@ import time
 import os
 import pandas as pd
 
-auth('16605815273','Mydream1994')
+auth('username','password')
 
 # 设置行列不忽略
 pd.set_option('display.max_rows', 100000)
 pd.set_option('display.max_columns', 10)
 
+# 全局变量
+data_root = '/pythonCoding/f-quant/data/'
 
 """
 获取所有A股股票列表
@@ -42,14 +44,31 @@ param: type 股票数据类型：price、finance
 return: 
 """
 def export_data(data, filename, type):
+    file_root = data_root + type + '/' + filename + '.csv'
 
-    # 修改为相对路径或绝对路径，确保目录存在
-    output_dir = os.path.join(os.getcwd(), 'data', type)  # 使用当前工作目录下的data/type作为输出目录
-    os.makedirs(output_dir, exist_ok=True)  # 如果目录不存在，则创建之
+    try:
+        data.index.names = ['date']
+        
+        if os.path.exists(file_root):
+            # 文件存在，则以追加模式写入，不添加列名
+            data.to_csv(file_root, mode='a', header=False)
+            print(f"Data successfully appended to {file_root}")
+        else:
+            # 文件不存在，则创建新文件并写入数据
+            data.to_csv(file_root)
+            print(f"Data successfully saved to new file {file_root}")
+    except Exception as e:
+        print(f"Failed to save data to {file_root}: {e}")
 
-    output_path = os.path.join(output_dir, filename + '.csv')
-    data.to_csv(output_path, index=False)
-    print(f"Data successfully saved to {output_path}")
+"""
+从csv读取数据
+param: code
+param: type
+return: 
+"""
+def get_csv_data(code, type):
+    file_root = data_root + type + '/' + code + '.csv'
+    return pd.read_csv(file_root)
 
 """
 将数据转化为指定周期：开盘价（周期第一天）、收盘价（周期最后一天）、最高价（周期内）、最低价（周期内）
