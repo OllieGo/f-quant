@@ -1,31 +1,23 @@
 """
 @file stock.py
-@desc: 用于调用股票行情数据的脚本
+@desc: 获取价格，计算涨跌幅
 """
 
 import sys
 sys.path.append("D:/pythonCoding/f-quant")
 
-
 import data.stock as st
-import pandas as pd
 
-# 初始化变量
-code='000001.XSHE'
+code = '000001.XSHE'
 
-# 调用一只股票的行情数据
-data = st.get_single_price(code=code,
-                           time_freq = 'daily',
-                           start_date = '2024-02-01',
-                           end_date = '2024-06-01')
+# 获取行情数据（日K）
+data = st.get_single_price(code,'daily','2024-01-01','2024-02-01')
+print(data)
 
-# 存入csv
-st.export_data(data=data, filename=code, type='price')
+# 计算涨跌幅
+data = st.caculate_change_pct(data)
+print(data)
 
-# print(data)
+# 获取周K
 
-# 从csv中获取数据
-# data = st.get_csv_data(code=code, type='price')
-# print(data)
-
-# 实时更新数据：假设每天更新 > 存到csv文件里面
+# 计算涨跌幅

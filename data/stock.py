@@ -4,7 +4,7 @@ import time
 import os
 import pandas as pd
 
-auth('username','password')
+auth('16605815273','Mydream1994')
 
 # 设置行列不忽略
 pd.set_option('display.max_rows', 100000)
@@ -107,4 +107,13 @@ return:
 """
 def get_single_valuation(code, date, statDate):
     data = get_fundamentals(query(valuation).filter(valuation.code == code), date=date, statDate=statDate)
+    return data
+
+"""
+涨跌幅 = （当期收盘价 - 前期收盘价）/ 前期收盘价）
+param: data: dataframe,带有收盘价
+return: dataframe,带有涨跌幅
+"""
+def caculate_change_pct(data):
+    data['close_pct'] = (data['close'] - data['close'].shift(1)) / data['close'].shift(1)
     return data
