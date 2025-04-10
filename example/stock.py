@@ -12,12 +12,16 @@ code = '000001.XSHE'
 
 # 获取行情数据（日K）
 data = st.get_single_price(code,'daily','2024-01-01','2024-02-01')
+# print(data)
+
+# 计算涨跌幅
+# data = st.caculate_change_pct(data)
+# print(data)
+
+# 获取周K
+data = st.transfer_price_freq(data, 'w')
 print(data)
 
 # 计算涨跌幅
 data = st.caculate_change_pct(data)
 print(data)
-
-# 获取周K
-
-# 计算涨跌幅

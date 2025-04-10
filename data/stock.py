@@ -4,7 +4,7 @@ import time
 import os
 import pandas as pd
 
-auth('16605815273','Mydream1994')
+auth('username','password')
 
 # 设置行列不忽略
 pd.set_option('display.max_rows', 100000)
@@ -76,7 +76,7 @@ param: data
 param: time_freq
 return: 
 """
-def export_stock_price(data, time_freq):
+def transfer_price_freq(data, time_freq):
  
     df_trans = pd.DataFrame()
     df_trans['open'] = data['open'].resample(time_freq).first()
