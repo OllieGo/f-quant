@@ -4,7 +4,7 @@ import time
 import os
 import pandas as pd
 
-auth('username','password')
+auth('16605815273','Mydream1994')
 
 # 设置行列不忽略
 pd.set_option('display.max_rows', 100000)
@@ -32,6 +32,10 @@ param: end_date
 return: 
 """
 def get_single_price(code, time_freq, start_date, end_date):
+    # 如果start_date=None，默认为从上市日期开始
+    if start_date is None:
+        start_date = get_security_info(code).start_date
+    # 获取行情数据
     data = get_price(code, start_date = start_date, end_date = end_date
                      , frequency = time_freq)
     return data
