@@ -31,13 +31,18 @@ param: data
 return: 
 """
 def caculate_prof_pct(data):
-    data = data[data['signal'] != 0] # 筛选
- 
-    # 确保data不是一个视图，而是一个独立的DataFrame对象
-    data = data.copy()
-    data.loc[:, 'profit_pct'] = (data['close'] - data['close'].shift(1)) / data['close'].shift(1)
-
+    # 筛选信号不为0的 ，并且计算涨跌幅
+    data.loc[data['signal'] != 0, 'profit_pct'] = data['close'].pct_change()
     data = data[data['signal'] == -1]
+    return data
+
+"""
+计算累计收益率
+param data: dataFrame
+return: 
+"""
+def caculate_cum_prof(data):
+    data['cum_profit'] = pd.DataFrame(1 + data['profit_pct']).cumprod() - 1
     return data
 
 
@@ -56,6 +61,9 @@ def week_period_strategy(code, time_freq, start_date, end_date):
     # 计算单次收益率：开仓、平仓（开仓的全部股数）
     data = caculate_prof_pct(data)
 
+    # 计算累计收益率
+    data = caculate_cum_prof(data)
+
     return data
 
 if __name__ == '__main__':
@@ -63,8 +71,8 @@ if __name__ == '__main__':
     # data = week_period_strategy(code, 'daily', '2024-01-01', '2024-03-01')
     df = week_period_strategy(code, 'daily', None, '2025-01-07')
     # print(data[['close', 'weekday', 'buy_signal', 'sell_signal', 'signal']])
-    print(df[['close', 'signal', 'profit_pct']])
+    print(df[['close', 'signal', 'profit_pct', 'cum_profit']])
     print(df.describe())
-    df['profit_pct'].plot()
+    df['cum_profit'].plot()
     plt.show()
 

@@ -44,7 +44,7 @@ def get_single_price(code, time_freq, start_date, end_date):
 导出股票行情数据
 param: data
 param: filename
-param: type 股票数据类型：price、finance
+param: type 股票数据类型:price、finance
 return: 
 """
 def export_data(data, filename, type):
