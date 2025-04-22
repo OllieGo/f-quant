@@ -54,7 +54,7 @@ def caculate_max_drawdown(data):
     # 选取时间周期
     window = 252
     # 计算时间周期中的最大净值
-    data['roll_max'] = data['close'].rolling(window=252,min_periods=1)
+    data['roll_max'] = data['close'].rolling(window=window,min_periods=1).max()
     # 计算当天的回撤比 （谷值-峰值）/ 峰值 = 谷值 / 峰值 - 1
     data['daily_dd'] = data['close'] / data['roll_max'] - 1
     # 选取时间周期内的最大回撤比，即最大回撤
@@ -88,10 +88,18 @@ def week_period_strategy(code, time_freq, start_date, end_date):
 if __name__ == '__main__':
     code = '000001.XSHE'
     # data = week_period_strategy(code, 'daily', '2024-01-01', '2024-03-01')
-    df = week_period_strategy(code, 'daily', None, '2025-01-07')
+    # df = week_period_strategy(code, 'daily', None, '2025-01-07')
     # print(data[['close', 'weekday', 'buy_signal', 'sell_signal', 'signal']])
-    print(df[['close', 'signal', 'profit_pct', 'cum_profit']])
-    print(df.describe())
-    df['cum_profit'].plot()
+    # print(df[['close', 'signal', 'profit_pct', 'cum_profit']])
+    # print(df.describe())
+    # df['cum_profit'].plot()
+    # plt.show()
+
+    # 查看最大回撤
+    # df = st.get_single_price(code, 'daily', None, '2025-01-07')
+    df = st.get_single_price(code, 'daily', None, '2025-01-07')
+    df = caculate_max_drawdown(df)
+    print(df[['close', 'roll_max', 'daily_dd', 'max_dd']])
+    df[['daily_dd', 'max_dd']].plot()
     plt.show()
 
