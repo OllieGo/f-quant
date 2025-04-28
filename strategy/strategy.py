@@ -30,7 +30,7 @@ def compose_singal(data):
 param: data
 return: 
 """
-def caculate_prof_pct(data):
+def calculate_prof_pct(data):
     # 筛选信号不为0的 ，并且计算涨跌幅
     data.loc[data['signal'] != 0, 'profit_pct'] = data['close'].pct_change()
     data = data[data['signal'] == -1]
@@ -41,7 +41,7 @@ def caculate_prof_pct(data):
 param data: dataFrame
 return: 
 """
-def caculate_cum_prof(data):
+def calculate_cum_prof(data):
     data['cum_profit'] = pd.DataFrame(1 + data['profit_pct']).cumprod() - 1
     return data
 
@@ -50,7 +50,7 @@ def caculate_cum_prof(data):
 param: data
 return: 
 """
-def caculate_max_drawdown(data):
+def calculate_max_drawdown(data):
     # 选取时间周期
     window = 252
     # 计算时间周期中的最大净值
@@ -61,6 +61,22 @@ def caculate_max_drawdown(data):
     data['max_dd'] = data['daily_dd'].rolling(window=252,min_periods=1).min()
    
     return data
+
+"""
+计算夏普比率，返回年华夏普比率
+param: data: dataframe,stock
+return: float
+"""
+def calculate_sharpe(data):
+    # 公式: sharpe = （回报率的均值 - 无风险利率） / 回报率的标准差
+    # 因子项
+    daily_return = data['close'].pct_change()
+    avg_return = daily_return.mean()
+    sd_return = daily_return.std()
+    # 计算夏普：每日收益 * 252 = 每年收益率
+    sharpe = avg_return / sd_return
+    sharpe_year = sharpe * np.sqrt(252)
+    return sharpe, sharpe_year
 
 def week_period_strategy(code, time_freq, start_date, end_date):
     data = st.get_single_price(code, time_freq, start_date, end_date)
@@ -75,13 +91,13 @@ def week_period_strategy(code, time_freq, start_date, end_date):
     data = compose_singal(data)
 
     # 计算单次收益率：开仓、平仓（开仓的全部股数）
-    data = caculate_prof_pct(data)
+    data = calculate_prof_pct(data)
 
     # 计算累计收益率
-    data = caculate_cum_prof(data)
+    data = calculate_cum_prof(data)
 
     # 最大回撤
-    data = caculate_max_drawdown(data)
+    data = calculate_max_drawdown(data)
     
     return data
 
@@ -97,9 +113,12 @@ if __name__ == '__main__':
 
     # 查看最大回撤
     # df = st.get_single_price(code, 'daily', None, '2025-01-07')
-    df = st.get_single_price(code, 'daily', None, '2025-01-07')
-    df = caculate_max_drawdown(df)
-    print(df[['close', 'roll_max', 'daily_dd', 'max_dd']])
-    df[['daily_dd', 'max_dd']].plot()
-    plt.show()
+    # df = calculate_max_drawdown(df)
+    # print(df[['close', 'roll_max', 'daily_dd', 'max_dd']])
+    # df[['daily_dd', 'max_dd']].plot()
+    # plt.show()
 
+    # 计算夏普比率
+    df = st.get_single_price(code, 'daily', None, '2025-01-07')
+    sharpe = calculate_sharpe(df)
+    print(sharpe)
