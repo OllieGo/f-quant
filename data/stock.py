@@ -1,6 +1,7 @@
 
 from jqdatasdk import *
 import time
+import datetime
 import os
 import pandas as pd
 
@@ -12,6 +13,22 @@ pd.set_option('display.max_columns', 10)
 
 # 全局变量
 data_root = '/pythonCoding/f-quant/data/'
+
+"""
+初始化股票数据库
+return: 
+"""
+def init_db():
+    # 1.获取所有股票代码
+    stocks = get_stock_list()
+    # 2.存储到scv中
+    for code in stocks:
+        start_date='2024-02-04'
+        end_date='2025-02-10'
+        df = get_single_price(code, 'daily', start_date, end_date)
+        export_data(df, code, 'price')
+        print(code)
+        print(df.head()) 
 
 """
 获取所有A股股票列表
@@ -31,10 +48,13 @@ param: start_date
 param: end_date
 return: 
 """
-def get_single_price(code, time_freq, start_date, end_date):
+def get_single_price(code, time_freq, start_date=None, end_date=None):
     # 如果start_date=None，默认为从上市日期开始
     if start_date is None:
         start_date = get_security_info(code).start_date
+    if end_date is None:
+        end_date = datetime.datetime.today()
+
     # 获取行情数据
     data = get_price(code, start_date = start_date, end_date = end_date
                      , frequency = time_freq)
@@ -45,20 +65,29 @@ def get_single_price(code, time_freq, start_date, end_date):
 param: data
 param: filename
 param: type 股票数据类型:price、finance
+param: mode a代表追加,none代表默认w写入
 return: 
 """
-def export_data(data, filename, type):
+def export_data(data, filename, type, mode=None):
     file_root = data_root + type + '/' + filename + '.csv'
 
     try:
         data.index.names = ['date']
-        
-        if os.path.exists(file_root):
-            # 文件存在，则以追加模式写入，不添加列名
-            data.to_csv(file_root, mode='a', header=False)
-            print(f"Data successfully appended to {file_root}")
+        if mode == 'a':
+            if os.path.exists(file_root):
+                # 文件存在，则以追加模式写入，不添加列名
+                data.to_csv(file_root, mode='a', header=False)
+                # 删除重复值
+                data = pd.read_csv(file_root) # 读取数据
+                data = data.drop_duplicates(subset = ['date']) # 以日期列为准
+                data.to_csv(file_root) # 重新写入
+                print(f"Data successfully appended to {file_root}")
+            else:
+                # 文件不存在，则创建新文件并写入数据
+                data.to_csv(file_root)
+                print(f"Data successfully saved to new file {file_root}")
+            
         else:
-            # 文件不存在，则创建新文件并写入数据
             data.to_csv(file_root)
             print(f"Data successfully saved to new file {file_root}")
     except Exception as e:
@@ -121,3 +150,22 @@ return: dataframe,带有涨跌幅
 def caculate_change_pct(data):
     data['close_pct'] = (data['close'] - data['close'].shift(1)) / data['close'].shift(1)
     return data
+
+def update_daily_price(stock_code, type):
+    # 3.1是否存在文件：不存在-重新获取，存在->3.2
+    file_root = data_root + type + '/' + stock_code + '.csv'
+    if os.path.exists(file_root): # 如果存在对应文件
+        # 3.2获取增量数据（code, start_date=对应股票csv中的最新日期，end_date=今天）
+        startdate = pd.read_csv(file_root, usecols=['date'])['date'].iloc[-1]
+        # enddate = datetime.datetime.today()
+        enddate = '2025-02-09'
+        df = get_single_price(stock_code, 'daily', startdate, enddate)
+        # 3.3追加到已有文件中
+        export_data(df, stock_code, 'price', 'a')
+
+    else:
+        # 重新获取股票行情数据
+        df = get_single_price(stock_code)
+        export_data(df, stock_code, 'price')
+    
+    
