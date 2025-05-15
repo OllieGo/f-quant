@@ -77,9 +77,11 @@ def export_data(data, filename, type, mode=None):
             if os.path.exists(file_root):
                 # 文件存在，则以追加模式写入，不添加列名
                 data.to_csv(file_root, mode='a', header=False)
-                # 删除重复值
-                data = pd.read_csv(file_root) # 读取数据
-                data = data.drop_duplicates(subset = ['date']) # 以日期列为准
+                
+                # 读取并去重
+                data = pd.read_csv(file_root, index_col='date') # 使用date作为索引读取数据
+                data = data[~data.index.duplicated(keep='last')]  # 去除重复行，保留最后一条记录
+                
                 data.to_csv(file_root) # 重新写入
                 print(f"Data successfully appended to {file_root}")
             else:
@@ -99,9 +101,30 @@ param: code
 param: type
 return: 
 """
-def get_csv_data(code, type):
-    file_root = data_root + type + '/' + code + '.csv'
-    return pd.read_csv(file_root)
+# def get_csv_data(code, type):
+#     file_root = data_root + type + '/' + code + '.csv'
+#     return pd.read_csv(file_root)
+
+
+"""
+获取本地数据，且完成数据更新工作
+param: code: str,股票代码
+param: start_date: str,起始日期
+param: end_date: str,起始日期
+return: dataframe
+"""
+def get_csv_price(code, start_date, end_date):
+    # 使用update直接更新
+    update_daily_price(code)
+    
+    # 读取数据
+    file_root = data_root + 'price/' + code + '.csv'
+    data = pd.read_csv(file_root, index_col= 'date')
+    # print(data)
+    
+    # 根据日期筛选股票数据
+    return data[(data.index >= start_date) & (data.index <= end_date)]
+
 
 """
 将数据转化为指定周期：开盘价（周期第一天）、收盘价（周期最后一天）、最高价（周期内）、最低价（周期内）
@@ -151,14 +174,14 @@ def caculate_change_pct(data):
     data['close_pct'] = (data['close'] - data['close'].shift(1)) / data['close'].shift(1)
     return data
 
-def update_daily_price(stock_code, type):
+def update_daily_price(stock_code, type='price'):
     # 3.1是否存在文件：不存在-重新获取，存在->3.2
     file_root = data_root + type + '/' + stock_code + '.csv'
     if os.path.exists(file_root): # 如果存在对应文件
         # 3.2获取增量数据（code, start_date=对应股票csv中的最新日期，end_date=今天）
         startdate = pd.read_csv(file_root, usecols=['date'])['date'].iloc[-1]
         # enddate = datetime.datetime.today()
-        enddate = '2025-02-09'
+        enddate = '2025-02-11'
         df = get_single_price(stock_code, 'daily', startdate, enddate)
         # 3.3追加到已有文件中
         export_data(df, stock_code, 'price', 'a')
@@ -168,4 +191,5 @@ def update_daily_price(stock_code, type):
         df = get_single_price(stock_code)
         export_data(df, stock_code, 'price')
     
+    print("股票已经更新成功：", stock_code)
     
