@@ -22,6 +22,7 @@ import data.stock as st
 # import strategy.base as stra
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 """
 双均线策略
@@ -43,6 +44,12 @@ def ma_strategy(data, short_window=5, long_window=20):
     # 过滤信号：st.compose_singal
     data = stra.compose_signal(data)
 
+    # 计算单次收益
+    data = stra.calculate_prof_pct(data)
+
+    # 计算累计收益
+    data = stra.calculate_cum_prof(data)
+     
     # 数据预览
     # print(data[['close', 'short_ma', 'long_ma', 'buy_signal', 'sell_signal']])
 
@@ -52,11 +59,38 @@ def ma_strategy(data, short_window=5, long_window=20):
 
 
 if __name__ == '__main__':
-    code = '000001.XSHE'
-    df = st.get_single_price(code, 'daily', '2024-02-01', '2025-02-01')
-    df = ma_strategy(df)
-    # 筛选有信号点
-    df = df[df['signal'] != 0]
-    # 预览数据
-    print("开仓次数：", int(len(df) / 2))
-    print(df[['close', 'short_ma', 'long_ma', 'signal']])
+    # 单只股票
+    # code = '000001.XSHE'
+    # df = st.get_single_price(code, 'daily', '2024-02-01', '2025-02-01')
+    # df = ma_strategy(df)
+    # # 筛选有信号点
+    # df = df[df['signal'] != 0]
+    # # 预览数据
+    # print("开仓次数：", int(len(df) / 2))
+    # # print(df[['close', 'short_ma', 'long_ma', 'signal']])
+    # print(df[['close', 'short_ma', 'long_ma', 'signal', 'profit_pct', 'cum_profit']])
+
+    # 股票列表
+    stocks = ['000001.XSHE','000858.XSHE','002594.XSHE']
+    # 存放累计收益率
+    cum_profits = pd.DataFrame()
+    for code in stocks:
+        df = st.get_single_price(code, 'daily', '2024-02-06', '2025-02-12')
+        df = ma_strategy(df) # 调用双均线策略
+        cum_profits[code] = df['cum_profit'].reset_index(drop=True) # 存储累 计收益率
+        # 折线图
+        df['cum_profit'].plot(label=code)
+        # 筛选有信号点
+        # df = df[df['signal'] != 0]
+        # 预览数据
+        print("开仓次数：", int(len(df)))
+        # print(df[['close', 'short_ma', 'long_ma', 'signal', 'profit_pct', 'cum_profit']])
+
+    # 预览
+    print(cum_profits)
+    # 可视化
+    # cum_profits.plot()
+    plt.legend()
+    plt.title('Comparision of Ma Strategy Profits')
+    plt.show()
+
