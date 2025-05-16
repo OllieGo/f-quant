@@ -16,12 +16,16 @@ import matplotlib.pyplot as plt
 param: data
 return: 
 """
-def compose_singal(data):
+def compose_signal(data):
+     # 对于连续的买入信号，仅保留第一个
     data['buy_signal'] = np.where((data['buy_signal'] == 1) 
         & (data['buy_signal'].shift(1) == 1), 0, data['buy_signal'])
+    
+    # 对于连续的卖出信号，仅保留第一个
     data['sell_signal'] = np.where((data['sell_signal'] == -1) 
         & (data['sell_signal'].shift(1) == -1), 0, data['sell_signal'])
 
+    # 整合买入和卖出信号
     data['signal'] = data['buy_signal'] + data['sell_signal']
     return data
 
