@@ -181,7 +181,7 @@ def update_daily_price(stock_code, type='price'):
         # 3.2获取增量数据（code, start_date=对应股票csv中的最新日期，end_date=今天）
         startdate = pd.read_csv(file_root, usecols=['date'])['date'].iloc[-1]
         # enddate = datetime.datetime.today()
-        enddate = '2025-02-11'
+        enddate = '2025-02-15'
         df = get_single_price(stock_code, 'daily', startdate, enddate)
         # 3.3追加到已有文件中
         export_data(df, stock_code, 'price', 'a')

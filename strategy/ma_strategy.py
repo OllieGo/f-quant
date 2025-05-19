@@ -19,7 +19,6 @@ if project_root not in sys.path:
 
 import strategy.base as stra
 import data.stock as st
-# import strategy.base as stra
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,6 +31,8 @@ param: long_window:长期n日移动平均线,默认20
 return: 
 """
 def ma_strategy(data, short_window=5, long_window=20):
+
+    print("============当前周期参数对：", short_window, long_window)
     data = pd.DataFrame(data)
     # 计算技术指标：ma短期、ma长期
     data['short_ma'] = data['close'].rolling(window=short_window).mean()
@@ -55,6 +56,10 @@ def ma_strategy(data, short_window=5, long_window=20):
 
     # 删除多余的columns  axis=1删除列 axis=0删除行
     data.drop(labels=['buy_signal', 'sell_signal'], axis=1)
+
+    # 数据预览
+    print(data[['close', 'short_ma', 'long_ma', 'signal', 'cum_profit']])
+
     return data
 
 
